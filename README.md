@@ -1,5 +1,8 @@
 # AngelScript Sessions
 
+## Example Project
+https://github.com/vahabahmadvand/AngelScriptSessionExample
+
 ## How to create a session
 1.  Get ```UScriptSessionSubsystem``` subsystem, and bind events
 ```cpp
@@ -12,7 +15,7 @@ if (SessionSubsystem != nullptr)
 }
 ```
 
-2. Having two button for hosting and joining
+2. Having two buttons for hosting and joining
 3. On Host button click, call ```CreateSession``` function.
 ```cpp
 if (System::IsValid(SessionSubsystem))
@@ -42,7 +45,7 @@ private void OnCreateSession(bool bSuccessful)
 
 ## How to find a session and join
 
-1. On Join button click, call ```FindSessions```
+1. On the Join button click, call ```FindSessions```
 ```cpp
 if (System::IsValid(SessionSubsystem))
 {
