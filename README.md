@@ -6,7 +6,7 @@ https://github.com/vahabahmadvand/AngelScriptSessionExample
 ## How to create a session
 1.  Get ```UScriptSessionSubsystem``` subsystem, and bind events
 ```cpp
-SessionSubsystem = Cast<UScriptSessionSubsystem>(Subsystem::GetGameInstanceSubsystem(UScriptSessionSubsystem::StaticClass()));
+SessionSubsystem = UScriptSessionSubsystem::Get();
 
 if (SessionSubsystem != nullptr)
 {
