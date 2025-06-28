@@ -2,12 +2,12 @@
 
 
 #include "ScriptSessionSubsystem.h"
+#include "Online/OnlineSessionNames.h"
 #include "OnlineSubsystemUtils.h"
 
 UScriptSessionSubsystem::UScriptSessionSubsystem()
 	: CreateSessionCompleteDelegate(FOnCreateSessionCompleteDelegate::CreateUObject(this, &UScriptSessionSubsystem::OnCreateSessionCompleted))
 	, UpdateSessionCompleteDelegate(FOnUpdateSessionCompleteDelegate::CreateUObject(this, &UScriptSessionSubsystem::OnUpdateSessionCompleted))
-	, StartSessionCompleteDelegate(FOnStartSessionCompleteDelegate::CreateUObject(this, &UScriptSessionSubsystem::OnStartSessionCompleted))
 	, EndSessionCompleteDelegate(FOnEndSessionCompleteDelegate::CreateUObject(this, &UScriptSessionSubsystem::OnEndSessionCompleted))
 	, DestroySessionCompleteDelegate(FOnDestroySessionCompleteDelegate::CreateUObject(this, &UScriptSessionSubsystem::OnDestroySessionCompleted))
 	, FindSessionsCompleteDelegate(FOnFindSessionsCompleteDelegate::CreateUObject(this, &UScriptSessionSubsystem::OnFindSessionsCompleted))
@@ -25,18 +25,15 @@ void UScriptSessionSubsystem::CreateSession(int32 NumPublicConnections, bool IsL
 	}
 
 	LastSessionSettings = MakeShareable(new FOnlineSessionSettings());
-	LastSessionSettings->NumPrivateConnections = 0;
 	LastSessionSettings->NumPublicConnections = NumPublicConnections;
 	LastSessionSettings->bAllowInvites = true;
 	LastSessionSettings->bAllowJoinInProgress = true;
 	LastSessionSettings->bAllowJoinViaPresence = true;
-	LastSessionSettings->bAllowJoinViaPresenceFriendsOnly = true;
-	LastSessionSettings->bIsDedicated = false;
 	LastSessionSettings->bUsesPresence = true;
 	LastSessionSettings->bIsLANMatch = IsLANMatch;
 	LastSessionSettings->bShouldAdvertise = true;
 	LastSessionSettings->bUseLobbiesIfAvailable = false;
-	LastSessionSettings->Set(FName(TEXT("MAPNAME")), FString("Your Level Name"), EOnlineDataAdvertisementType::ViaOnlineService);
+	LastSessionSettings->Set(SETTING_MAPNAME, FString("Your Level Name"), EOnlineDataAdvertisementType::ViaOnlineService);
 
 	CreateSessionCompleteDelegateHandle = sessionInterface->AddOnCreateSessionCompleteDelegate_Handle(CreateSessionCompleteDelegate);
 
@@ -71,7 +68,7 @@ void UScriptSessionSubsystem::UpdateSession()
 	}
 
 	TSharedPtr<FOnlineSessionSettings> updatedSessionSettings = MakeShareable(new FOnlineSessionSettings(*LastSessionSettings));
-	updatedSessionSettings->Set(FName(TEXT("MAPNAME")), FString("Updated Level Name"), EOnlineDataAdvertisementType::ViaOnlineService);
+	updatedSessionSettings->Set(SETTING_MAPNAME, FString("Updated Level Name"), EOnlineDataAdvertisementType::ViaOnlineService);
 
 	UpdateSessionCompleteDelegateHandle =
 		sessionInterface->AddOnUpdateSessionCompleteDelegate_Handle(UpdateSessionCompleteDelegate);
@@ -97,37 +94,6 @@ void UScriptSessionSubsystem::OnUpdateSessionCompleted(FName SessionName, bool S
 	}
 
 	OnUpdateSessionCompleteEvent.Broadcast(Successful);
-}
-
-void UScriptSessionSubsystem::StartSession()
-{
-	const IOnlineSessionPtr sessionInterface = Online::GetSessionInterface(GetWorld());
-	if (!sessionInterface.IsValid())
-	{
-		OnStartSessionCompleteEvent.Broadcast(false);
-		return;
-	}
-
-	StartSessionCompleteDelegateHandle =
-		sessionInterface->AddOnStartSessionCompleteDelegate_Handle(StartSessionCompleteDelegate);
-
-	if (!sessionInterface->StartSession(NAME_GameSession))
-	{
-		sessionInterface->ClearOnStartSessionCompleteDelegate_Handle(StartSessionCompleteDelegateHandle);
-
-		OnStartSessionCompleteEvent.Broadcast(false);
-	}
-}
-
-void UScriptSessionSubsystem::OnStartSessionCompleted(FName SessionName, bool Successful)
-{
-	const IOnlineSessionPtr sessionInterface = Online::GetSessionInterface(GetWorld());
-	if (sessionInterface)
-	{
-		sessionInterface->ClearOnStartSessionCompleteDelegate_Handle(StartSessionCompleteDelegateHandle);
-	}
-
-	OnStartSessionCompleteEvent.Broadcast(Successful);
 }
 
 void UScriptSessionSubsystem::EndSession()
@@ -206,7 +172,7 @@ void UScriptSessionSubsystem::FindSessions(int32 MaxSearchResults, bool IsLANQue
 	LastSessionSearch = MakeShareable(new FOnlineSessionSearch());
 	LastSessionSearch->MaxSearchResults = MaxSearchResults;
 	LastSessionSearch->bIsLanQuery = IsLANQuery;
-	LastSessionSearch->QuerySettings.Set(FName(TEXT("PRESENCESEARCH")), true, EOnlineComparisonOp::Equals);
+	LastSessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
 
 	const ULocalPlayer* localPlayer = GetWorld()->GetFirstLocalPlayerFromController();
 	if (!sessionInterface->FindSessions(*localPlayer->GetPreferredUniqueNetId(), LastSessionSearch.ToSharedRef()))
